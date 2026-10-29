@@ -1,0 +1,55 @@
+{
+ "busy": null,
+ "field": "email_address",
+ "app": "user_email(1) crashed: KeyError: 'email'",
+ "no_pr": false,
+ "detect": {
+  "ok": true,
+  "out": "\n== 2026-10-25T07:40:51+00:00  breaking=1 warning=0 info=1 errors=0\n[changed  ] demo / openapi\n    BREAKING GET /v1/users/{id} response 200[application/json].email: property 'email' removed from response\n    INFO     GET /v1/users/{id} response 200[application/json].email_address: new property 'email_address'\nreport saved to reports/report-20261025T074051Z.json\n",
+  "summary": {
+   "breaking": 1,
+   "warning": 0,
+   "info": 1,
+   "errors": 0
+  },
+  "status": [
+   "changed"
+  ],
+  "changes": [
+   {
+    "api": "demo",
+    "source": "openapi",
+    "kind": "property_removed",
+    "severity": "breaking",
+    "location": "GET /v1/users/{id} response 200[application/json].email",
+    "message": "property 'email' removed from response",
+    "old": null,
+    "new": null
+   },
+   {
+    "api": "demo",
+    "source": "openapi",
+    "kind": "property_added",
+    "severity": "info",
+    "location": "GET /v1/users/{id} response 200[application/json].email_address",
+    "message": "new property 'email_address'",
+    "old": null,
+    "new": null
+   }
+  ]
+ },
+ "fix": {
+  "ok": true,
+  "out": "API changes:\n- Field email was renamed to \"email_address\". (It appears in responses of /v1/users/{id}, which is itself unchanged.)\n[nvidia/nemotron-3-super-120b-a12b] Updated the field name from \"email\" to \"email_address\" in the user_email function to match the upstream API change where User.email was renamed to email_address. This preserves the function's behavior while adapting to the new attribute name.\nAffected files: client.py\n\nPatch written to fix.patch\nChecks: Passed `python -m compileall -q .` on a temporary copy with the patch applied.\nApply it with:  git -C \"demo_repo\" apply --ignore-whitespace \"/home/claude/proj/fix.patch\"\n",
+  "none": false,
+  "changes": [
+   "Field email was renamed to \"email_address\"."
+  ],
+  "model": "nvidia/nemotron-3-super-120b-a12b",
+  "summary": "Updated the field name from \"email\" to \"email_address\" in the user_email function to match the upstream API change where User.email was renamed to email_address. This preserves the function's behavior while adapting to the new attribute name.",
+  "files": "client.py",
+  "checks": "Passed `python -m compileall -q .` on a temporary copy with the patch applied.",
+  "pr": "https://github.com/Oh3yo/Self-Maintaining-API-/pull/2",
+  "patch": "--- a/client.py\n+++ b/client.py\n@@ -10,4 +10,4 @@\n \n def user_email(user_id):\n     user = get_user(user_id)\n-    return user[\"email\"]\n+    return user[\"email_address\"]\n"
+ }
+}

@@ -1,0 +1,77 @@
+@import "tailwindcss";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.75rem;
+  --background: oklch(0.985 0.002 106);
+  --foreground: oklch(0.145 0.005 285);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0.005 285);
+  --muted: oklch(0.955 0.004 286);
+  --muted-foreground: oklch(0.47 0.01 286);
+  --border: oklch(0.9 0.005 286);
+  --primary: #467000;
+  --primary-foreground: #ffffff;
+  --destructive: #c4301a;
+}
+
+.dark {
+  --background: oklch(0.14 0.004 286);
+  --foreground: oklch(0.97 0.002 106);
+  --card: oklch(0.18 0.005 286);
+  --card-foreground: oklch(0.97 0.002 106);
+  --muted: oklch(0.26 0.006 286);
+  --muted-foreground: oklch(0.72 0.01 286);
+  --border: oklch(1 0 0 / 11%);
+  --primary: #76b900;
+  --primary-foreground: #0d1500;
+  --destructive: #ff6b52;
+}
+
+@theme inline {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, "Cascadia Code", Consolas, monospace;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-destructive: var(--destructive);
+  /* the reference component uses primary-* and secondary-* scales; these define them (NVIDIA-style green) */
+  --color-primary-50: #f4fbe6;
+  --color-primary-100: #e5f6c4;
+  --color-primary-200: #cdee90;
+  --color-primary-300: #addf55;
+  --color-primary-400: #8fcb26;
+  --color-primary-500: #76b900;
+  --color-primary-600: #5b9200;
+  --color-primary-700: #467000;
+  --color-primary-800: #3a5a05;
+  --color-primary-900: #324c09;
+  --color-primary-950: #192b00;
+  --color-secondary-950: #09090b;
+}
+
+@layer base {
+  * { border-color: var(--border); }
+  html { color-scheme: light; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  html.dark { color-scheme: dark; }
+  body { background: var(--background); color: var(--foreground); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+  :focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 4px; }
+  h1, h2, h3 { text-wrap: balance; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

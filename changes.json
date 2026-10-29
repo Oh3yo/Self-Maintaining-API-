@@ -1,0 +1,8 @@
+[
+  {
+    "kind": "field_renamed",
+    "schema": "User",
+    "field": "email",
+    "new_name": "email_address"
+  }
+]

@@ -1,0 +1,33 @@
+# Secrets / local config
+.env
+.env.*
+*.pem
+*.key
+secrets.*
+
+# Runtime state and generated output
+.state/
+.demo_state/
+reports/
+fix.patch
+impact_report.json
+detector_out.json
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.venv/
+
+# Node / UI build
+node_modules/
+ui/dist/
+web/node_modules/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+

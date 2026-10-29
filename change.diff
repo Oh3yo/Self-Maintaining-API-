@@ -1,0 +1,2 @@
+-def charge(amount, currency):
++def charge(amount_cents, currency, *, idempotency_key):

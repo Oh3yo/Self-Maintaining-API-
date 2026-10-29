@@ -1,0 +1,44 @@
+{
+ "openapi": "3.0.3",
+ "info": {
+  "title": "demo",
+  "version": "1.0"
+ },
+ "paths": {
+  "/v1/users/{id}": {
+   "get": {
+    "responses": {
+     "200": {
+      "description": "ok",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/User"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "schemas": {
+   "User": {
+    "type": "object",
+    "required": [
+     "id",
+     "email_address"
+    ],
+    "properties": {
+     "id": {
+      "type": "integer"
+     },
+     "email_address": {
+      "type": "string"
+     }
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,27 @@
+state_dir: .state       # last-known snapshots live here (plus an archive/ of older ones)
+reports_dir: reports    # one JSON report per run
+
+# Optional: POST the full report here when something at or above min_severity is found.
+notify:
+  webhook: ${CHANGE_WEBHOOK_URL}
+  min_severity: breaking   # breaking | warning | info
+
+apis:
+  - name: petstore
+    sources:
+      - type: openapi
+        url: https://petstore3.swagger.io/api/v3/openapi.json
+        # headers:
+        #   Authorization: Bearer ${PETSTORE_TOKEN}   # ${ENV} is expanded
+
+  - name: stripe
+    sources:
+      - type: pypi
+        package: stripe
+      - type: npm
+        package: stripe
+      - type: github_release
+        repo: stripe/stripe-python
+      - type: changelog
+        url: https://raw.githubusercontent.com/stripe/stripe-python/master/CHANGELOG.md
+        max_lines: 30
