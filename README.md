@@ -7,12 +7,12 @@ Third-party APIs change all the time and when a field gets renamed, an endpoint 
 
 ## Highlights
 
-- ≡ƒöì **Spots breaking changes early** by diffing OpenAPI specs, changelogs and SDK versions
-- ≡ƒÄ» **Finds exactly where you use the changed thing** (real AST parsing for Python, regex for other languages)
-- ≡ƒñû **Writes the patch for you** using an LLM, then checks it against your own tests
-- ≡ƒöÆ **Never touches your working copy**. Patches are tested on a temporary copy first
-- ≡ƒÜÇ **Can open the pull request too**, so all that's left is the review
-- ≡ƒº¬ **Tests run offline** with a fake model, so no API key is needed to try them
+- **Spots breaking changes early** by diffing OpenAPI specs, changelogs and SDK versions
+- **Finds exactly where you use the changed thing** (real AST parsing for Python, regex for other languages)
+- **Writes the patch for you** using an LLM, then checks it against your own tests
+- **Never touches your working copy**. Patches are tested on a temporary copy first
+- **Can open the pull request too**, so all that's left is the review
+- **Tests run offline** with a fake model, so no API key is needed to try them
 
 
 ## Overview
@@ -20,7 +20,7 @@ Third-party APIs change all the time and when a field gets renamed, an endpoint 
 The whole thing is four small scripts that pass JSON to each other:
 
 ```
-detector.py  ΓåÆ  impact_scanner.py  ΓåÆ  fix_generator.py  ΓåÆ  pipeline.py
+detector.py  ->  impact_scanner.py  -> fix_generator.py  ->  pipeline.py
 what changed     where it's used        propose a fix        test it and ship it
 ```
 
