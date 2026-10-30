@@ -10,4 +10,4 @@ def get_user(user_id):
 
 def user_email(user_id):
     user = get_user(user_id)
-    return user["email_address"]
+    return user["email"]
