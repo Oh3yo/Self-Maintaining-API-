@@ -259,6 +259,8 @@ def open_pr(repo, patch_path, result, changes, create=_github_pr, checks="",
     )
 
     _git(repo, "add", "-A")
+    _git(repo, "config", "user.name", "Self-Maintaining API Bot")
+    _git(repo, "config", "user.email", "self-maintaining-api@users.noreply.github.com")            
     _git(repo, "commit", "-m", title)
     remote = _git(repo, "remote", "get-url", "origin")
     _git(repo, "push", _auth_url(remote, os.environ.get("GITHUB_TOKEN")), branch)
