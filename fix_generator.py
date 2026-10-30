@@ -30,7 +30,7 @@ import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
-BASE_URL = "https://api.tokenfactory.nebius.com/v1/"
+BASE_URL = "https://api.studio.nebius.com/v1/"
 # NVIDIA open model on Token Factory. IDs are case-sensitive; if you get a
 # "model not found" error, list the real ones with `python fix_generator.py --list-models`.
 DEFAULT_MODEL = os.environ.get("FIX_MODEL", "nvidia/nemotron-3-super-120b-a12b")

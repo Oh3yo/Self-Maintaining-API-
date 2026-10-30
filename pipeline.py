@@ -46,7 +46,7 @@ def describe(c):
     return text
 
 
-LOC = re.compile(r"(?:([A-Z]+) )?(/\S*)(.*)$")  # "GET /users/{id} response 200[application/json].email"
+LOC = re.compile(r"(?:([A-Z]+) )?(/\S+?)(?=\s|$)(.*)$")  # "GET /users/{id} response 200[application/json].email"
 FIELD = re.compile(r"\.([^.\[\]\s]+)$")
 
 
@@ -228,31 +228,48 @@ def _github_pr(remote_url, title, head, base, body):
         raise SystemExit(f"GitHub API error {e.code}: {e.read().decode()[:500]}")
 
 
-def open_pr(repo, patch_path, result, changes, create=_github_pr, checks=""):
-    """Branch, apply the patch, commit, push, open a PR. Returns the PR URL."""
+def open_pr(repo, patch_path, result, changes, create=_github_pr, checks="",
+            base_branch="main", extra_files=()):
+    """Apply a generated patch in a clean worktree, commit, push and open a PR."""
     if _git(repo, "status", "--porcelain"):
         raise SystemExit(f"{repo} has uncommitted changes. Commit or stash them first.")
-    base = _git(repo, "rev-parse", "--abbrev-ref", "HEAD")
+
     branch = f"api-fix/{time.strftime('%Y%m%d-%H%M%S')}"
     _git(repo, "checkout", "-b", branch)
     _git(repo, "apply", "--ignore-whitespace", str(Path(patch_path).resolve()))
-    title = "Fix breaking API change: " + "; ".join(describe(c).split(" (")[0].rstrip(".") for c in changes)[:100]
+
+    for source, destination in extra_files:
+        target = Path(repo) / destination
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+
+    title = "Fix breaking API change: " + "; ".join(
+        describe(c).split(" (")[0].rstrip(".") for c in changes
+    )[:100]
     changed = _git(repo, "diff", "--name-only")
-    body = ("## Upstream API changes\n" + "\n".join(f"- {describe(c)}" for c in changes)
-            + f"\n\n## Fix\n{result.summary}\n\nFiles changed: {', '.join(changed.splitlines())}\n\n"
-            + (f"## Validation\n{checks}\n\n" if checks else "") + "---\n"
-            f"Generated automatically by Self-Maintaining API using `{result.model}` on Nebius "
-            f"Token Factory. Review before merging.")
+    body = (
+        "## Upstream API changes\n"
+        + "\n".join(f"- {describe(c)}" for c in changes)
+        + f"\n\n## Fix\n{result.summary}\n\n"
+        + f"Files changed: {', '.join(changed.splitlines())}\n\n"
+        + (f"## Validation\n{checks}\n\n" if checks else "")
+        + "---\n"
+        + f"Generated automatically by Self-Maintaining API using `{result.model}` "
+        + "on Nebius Token Factory. Review before merging."
+    )
+
     _git(repo, "add", "-A")
     _git(repo, "commit", "-m", title)
     remote = _git(repo, "remote", "get-url", "origin")
     _git(repo, "push", _auth_url(remote, os.environ.get("GITHUB_TOKEN")), branch)
-    return create(remote, title, branch, base, body)
+    return create(remote, title, branch, base_branch, body)
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--pr", action="store_true", help="also open a GitHub pull request (needs GITHUB_TOKEN)")
+    ap.add_argument("--pr-repo", help="clean worktree demo_repo directory for the PR")
+    ap.add_argument("--pr-test", help="regression test file to include in the PR")
     ap.add_argument("--no-checks", action="store_true", help="skip running the repo's tests/lint on the patch")
     ap.add_argument("--test-cmd", help='command to run instead of auto-detecting, e.g. "pytest -q"')
     ap.add_argument("repo")
@@ -293,9 +310,26 @@ def main():
     if note:
         print("Checks:", note)
     if a.pr:
-        print("Pull request:", open_pr(a.repo, a.out, result, changes, checks=note))
+        extra_files = (
+            [(a.pr_test, "tests/test_client.py")]
+            if a.pr_test else []
+        )
+
+        print("Pull request:", open_pr(
+            a.pr_repo or a.repo,
+            a.out,
+            result,
+            changes,
+            checks=note,
+            base_branch="main",
+            extra_files=extra_files,
+        ))
     else:
-        print(f'Apply it with:  git -C "{a.repo}" apply --ignore-whitespace "{Path(a.out).resolve()}"')
+        print(
+            f'Apply it with: git -C "{a.repo}" '
+            f'apply --ignore-whitespace "{Path(a.out).resolve()}"'
+        )
+
     return 0
 
 

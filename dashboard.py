@@ -17,6 +17,7 @@ import subprocess
 import sys
 import threading
 import time
+import tempfile
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -37,25 +38,83 @@ def sh(*cmd):
     return p.returncode, p.stdout + p.stderr
 
 
+
 def do(name):
     try:
         if name in ("break", "reset"):
             mock_api.state["field"] = "email_address" if name == "break" else "email"
+
         elif name == "detect":
-            rc, out = sh(PY, "detector.py", "run", "--config", "demo_apis.yaml", "--once")
-            S["log"]["detect"] = {"ok": rc in (0, 2), "out": out}  # exit 2 = breaking changes found
+            rc, out = sh(
+                PY, "detector.py", "run",
+                "--config", "demo_apis.yaml", "--once"
+            )
+            S["log"]["detect"] = {
+                "ok": rc in (0, 2),
+                "out": out,
+            }  # exit 2 = breaking changes found
+
         elif name == "fix":
-            sh("git", "-C", "demo_repo", "checkout", "main")  # the PR step leaves the repo on its branch
-            rc, out = sh(PY, "pipeline.py", "demo_repo", "reports", *([] if S["no_pr"] else ["--pr"]))
-            S["log"]["fix"] = {"ok": rc == 0, "out": out}
+            if S["no_pr"]:
+                rc, out = sh(
+                    PY, "pipeline.py", "demo_repo", "reports"
+                )
+            else:
+                with tempfile.TemporaryDirectory(
+                    prefix="api-pr-"
+                ) as temp_dir:
+                    remote_rc, remote_url = sh(
+                        "git", "remote", "get-url", "origin"
+                    )
+
+                    if remote_rc != 0:
+                        raise RuntimeError(
+                            "Could not retrieve the GitHub repository URL:\n"
+                            + remote_url
+                        )
+
+                    clone_dir = Path(temp_dir) / "repo"
+
+                    clone_rc, clone_out = sh(
+                        "git", "clone",
+                        "--depth", "1",
+                        "--branch", "main",
+                        remote_url.strip(),
+                        str(clone_dir),
+                    )
+
+                    if clone_rc != 0:
+                        raise RuntimeError(
+                            "Could not clone the GitHub repository:\n"
+                            + clone_out
+                        )
+
+                    pr_repo = clone_dir / "demo_repo"
+
+                    rc, out = sh(
+                        PY, "pipeline.py", "demo_repo", "reports",
+                        "--pr",
+                        "--pr-repo", str(pr_repo),
+                        "--pr-test",
+                        str(ROOT / "demo_repo" / "tests" / "test_client.py"),
+                    )
+
+            S["log"]["fix"] = {
+                "ok": rc == 0,
+                "out": out,
+            }
+
         elif name == "restart":
             mock_api.state["field"] = "email"
             S["log"].clear()
+
             for p in (".demo_state", "reports"):
                 shutil.rmtree(ROOT / p, ignore_errors=True)
+
             (ROOT / "fix.patch").unlink(missing_ok=True)
-            sh("git", "-C", "demo_repo", "checkout", "main")
+
         S["app"] = ("", 0.0)
+
     finally:
         S["busy"] = None
 
@@ -386,20 +445,37 @@ poll(); setInterval(poll, 1500);
 """
 
 
+
+
+
+
 def main():
     os.chdir(ROOT)
+
+    hosted = os.environ.get("HOSTED", "").lower() == "true"
+    host = "0.0.0.0" if hosted else "localhost"
+    dashboard_port = int(os.environ.get("PORT", "8001")) if hosted else 8001
+
+    # The mock API is needed in both local and hosted modes.
     try:
-        api = ThreadingHTTPServer(("localhost", 8000), mock_api.Handler)
+        api = ThreadingHTTPServer(("127.0.0.1", 8000), mock_api.Handler)
     except OSError:
-        sys.exit("Port 8000 is busy. Close any other window running mock_api.py, then start again.")
+        sys.exit(
+            "Port 8000 is busy. Close any other window running mock_api.py, "
+            "then start the dashboard again."
+        )
+
     threading.Thread(target=api.serve_forever, daemon=True).start()
-    print("Mock API on http://localhost:8000")
-    print("Console on http://localhost:8001  (Ctrl+C to stop)" + ("  [rehearsal: no PRs]" if S["no_pr"] else ""))
-    try:
-        webbrowser.open("http://localhost:8001")
-    except Exception:
-        pass
-    ThreadingHTTPServer(("localhost", 8001), H).serve_forever()
+    print("Mock API on http://127.0.0.1:8000")
+    print(f"Console on http://{host}:{dashboard_port}")
+
+    if not hosted:
+        try:
+            webbrowser.open("http://localhost:8001")
+        except Exception:
+            pass
+
+    ThreadingHTTPServer((host, dashboard_port), H).serve_forever()
 
 
 if __name__ == "__main__":
