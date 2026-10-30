@@ -63,18 +63,17 @@ def do(name):
                 with tempfile.TemporaryDirectory(
                     prefix="api-pr-"
                 ) as temp_dir:
-                  remote_url = (
+                    remote_url = (
                         os.environ.get("GITHUB_REPOSITORY_URL", "").strip()
                         or "https://github.com/Oh3yo/Self-Maintaining-API-.git"
                     )
 
                     clone_dir = Path(temp_dir) / "repo"
-
                     clone_rc, clone_out = sh(
                         "git", "clone",
                         "--depth", "1",
                         "--branch", "main",
-                        remote_url.strip(),
+                        remote_url,
                         str(clone_dir),
                     )
 
